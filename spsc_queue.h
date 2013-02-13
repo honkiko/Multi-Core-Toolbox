@@ -16,7 +16,7 @@
  * and Blocking Concurrent Queue Algorithms", PODC96.
 
  *
- * Authors:	
+ * Implemented and tested by:	
  *		Hong Zhiguo <honkiko@gmail.com>
  *      2012.01.18 
  *
@@ -27,27 +27,7 @@
  *	2 of the License, or (at your option) any later version.
  */
  
- 
- 
-
-/** @HAVE_Q_LEN: to decide whether having spsc_queue_len() primitive
- * note this cost some performance lost due to the 
- * expensive atomic operation */
-//#define HAVE_Q_LEN
-
-/** @CONFIG_SAME_CPU: Are the producer and consumer runing on same 
- * processor? Normally you should not define it. It's a subset of 
- * CONFIG_SMP. 
- * When you have SMP, but you'r sure producer and consumer 
- * run on same processor, CONFIG_SAME_CPU will switch off
- * all the memory barriers for performance. This is common
- * when you have producer in irq and consumer in tasklet 
- * scheduled in the same irq, or vise versa. (tasklets always
- * run on the same processor on which it's scheduled.)*/
-//#define CONFIG_SAME_CPU
-
-
-#include "nbds_adapt.h"
+#include "mct_adapt.h"
 
 /*
 	Producer(enqueue)		Consumer(dequeue)
@@ -79,11 +59,14 @@ struct spscq_node {
 
 struct spsc_queue {
     struct spscq_node *head;
-#if defined(CONFIG_SMP) && !defined(CONFIG_SAME_CPU)
-    char pading[NBDS_CACHELINE_BYTES - sizeof(void *)];
+#ifndef CONFIG_SAME_CPU
+    char pading[MCT_CACHELINE_BYTES - sizeof(void *)];
 #endif
     struct spscq_node *tail;
 #ifdef HAVE_Q_LEN
+    #ifndef CONFIG_SAME_CPU
+    char pading2[MCT_CACHELINE_BYTES - sizeof(void *)];
+    #endif
     atomic_t len;
 #endif
 };
@@ -142,9 +125,14 @@ spsc_dequeue(struct spsc_queue *q, struct spscq_node **node_to_free)
     new_head = dead_head->next;
     
     if (!new_head){
+        *node_to_free = NULL;
         return NULL;
     }
     
+#ifdef HAVE_Q_LEN
+    atomic_dec(&q->len);
+#endif
+
     q->head = new_head;
     
     *node_to_free = dead_head;
@@ -154,7 +142,7 @@ spsc_dequeue(struct spsc_queue *q, struct spscq_node **node_to_free)
 
 
 #ifdef HAVE_Q_LEN
-static inline u32 spsc_queue_len(struct spsc_queue *q)
+static inline long spsc_queue_len(struct spsc_queue *q)
 {
     return atomic_read(&q->len);
 }

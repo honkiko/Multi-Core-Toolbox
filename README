@@ -1,0 +1,34 @@
+Multi-Core Toolbox
+==================
+
+Some basic tools for high performance Multi-Core computing. 
+Including:
+
+Lock-free Single producer single consumer concurrent queue
+------------------------------------------------
+
+To have producer and consumer work concurrently/parallely 
+without using locks.
+Published by Maged M. Michael and Michael L. Scott: "Simple, 
+Fast, and Practical Non-Blocking and Blocking Concurrent Queue 
+Algorithms", PODC96.
+
+Lock-free Multi-producer multi-consumer queue
+---------------------------------------------
+
+Published by Maged M. Michael and Michael L. Scott in the same
+article.
+
+MCS-lock
+--------
+
+Algorithm published on ACM TOCS, February 1991, by John M. 
+Mellor-Crummey and Michael L. Scott.
+http://www.cs.rochester.edu/u/scott/papers/1991_TOCS_synch.pdf
+
+- guarantees FIFO ordering of lock acquisitions;
+- spins on locally-accessible flag variables only;
+- requires a small constant amount of space per lock; and
+- works equally well (requiring only O(1) network transactions per lock
+		acquisition) on machines with and without coherent caches.
+
