@@ -4,7 +4,7 @@ Multi-Core Toolbox
 Some basic tools for high performance Multi-Core computing. 
 Including:
 
-Lock-free Single producer single consumer concurrent queue
+Lockless Single producer single consumer concurrent queue
 ------------------------------------------------
 
 To have producer and consumer work concurrently/parallely 
