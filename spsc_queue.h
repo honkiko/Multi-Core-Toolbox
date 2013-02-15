@@ -102,10 +102,10 @@ struct spsc_queue {
 };
 
 /** @node: could be dummy node or a real first node */
-static inline int 
+static inline int  
 spsc_queue_init(struct spsc_queue *q, struct spscq_node *node)
 {
-    if (!node){
+    if (!q || !node){
         return -1;
     }
     node->next = NULL;
@@ -124,6 +124,9 @@ static inline int
 #endif 
 spsc_queue_empty(struct spsc_queue *q)
 {
+    if (!q){
+        return -1;
+    }
     smp_rmb();
     return q->head->next == NULL;
 }
@@ -134,6 +137,10 @@ spsc_queue_empty(struct spsc_queue *q)
 static inline void 
 spsc_enqueue(struct spsc_queue *q, struct spscq_node *node)
 {
+    if (!q){
+        return;
+    }
+
     node->next = NULL;
     
     smp_wmb();
@@ -151,6 +158,10 @@ static inline struct spscq_node *
 spsc_dequeue(struct spsc_queue *q, struct spscq_node **node_to_free)
 {
     struct spscq_node *dead_head, *new_head;
+
+    if (!q){
+        return NULL;
+    }
     
     dead_head = q->head;
     
@@ -174,10 +185,35 @@ spsc_dequeue(struct spsc_queue *q, struct spscq_node **node_to_free)
     return new_head;
 }
 
+/*
+ * Why not have spsc_queue_destroy as inline function?
+ * 1) We don't know user defined structure which includes spsc_node
+ * 2) To avoid any dependency on specific memory management routins
+ *    spsc_queue don's calls any mm routine inside APIs.
+ *    the mm routines are full exposed to user's choise.
+ */
+#define spsc_queue_destroy(q, free_node, user_type, node_member) \
+    ({                                       \
+        struct spscq_node *qnode;            \
+        user_type *unode;                    \
+        while(!spsc_queue_empty(q)) {        \
+            spsc_dequeue((q), &qnode);       \
+            if (qnode) {                     \
+                unode = container_of(qnode,  \
+                    user_type, node_member); \
+                free_node(unode);}           \
+        }                                    \
+        unode = container_of((q)->head,      \
+                    user_type, node_member); \
+        free_node(unode);                    \
+    })
 
 #ifdef HAVE_Q_LEN
 static inline long spsc_queue_len(struct spsc_queue *q)
 {
+    if (!q){
+        return 0;
+    }
     return atomic_read(&q->len);
 }
 #endif

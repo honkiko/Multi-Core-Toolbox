@@ -34,16 +34,12 @@ void enqueue_int(struct mpmc_queue *q, int n)
     struct mpmcq_node  *pnode;
     unode = (struct user_node*)malloc(sizeof(struct user_node));
     unode->x = n;
-    pnode = (struct mpmcq_node*)malloc(sizeof(struct mpmcq_node));
-    pnode->user_data = unode;
-    mpmc_enqueue(q, pnode);
+    mpmc_enqueue(q, unode);
     printf("enqueue %d\n", n);
 }
 void dequeue_int(struct mpmc_queue *q) {
     struct user_node *unode;
-    struct mpmcq_node  *pfree;
-
-    unode = mpmc_dequeue(q, &pfree);
+    unode = mpmc_dequeue(q);
     //printf("unode=%p, pfree=%p\n", unode, pfree);
     if (unode) {
         printf("dequeue %d\n", unode->x);
@@ -52,9 +48,6 @@ void dequeue_int(struct mpmc_queue *q) {
     } else {
         printf("dequeue NULL\n");
     }
-    if (pfree) {
-        free(pfree);
-    }
 }
 
 int main() 
@@ -62,9 +55,7 @@ int main()
     struct mpmc_queue q;
     struct user_node *unode;
     struct mpmcq_node  *pnode, *pfree;
-    struct mpmcq_node* dummy_node = 
-        (struct mpmcq_node*)malloc(sizeof(struct mpmcq_node));
-    mpmc_queue_init(&q, dummy_node); 
+    mpmc_queue_init(&q); 
 
     dump_mpmc_queue(&q);
     dequeue_int(&q);
@@ -80,6 +71,7 @@ int main()
     dequeue_int(&q);
     dump_mpmc_queue(&q);
     dequeue_int(&q);
+    mpmc_queue_destroy(&q);
 
     return 0;
 }

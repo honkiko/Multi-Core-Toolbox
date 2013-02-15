@@ -5,11 +5,29 @@
     #include <asm/barrier.h>        /*smp_mb*/
     #include <linux/cache.h>        /*SMP_CACHE_BYTES*/
     #include <linux/kernel.h>       /*container_of*/
+
+    /* The default memory management routine for kernel*/
+    #ifndef MCT_MALLOC
+        #define MCT_MALLOC(n) kmalloc((n), GFP_KERNEL) 
+    #endif
+    #ifndef MCT_FREE
+        #define MCT_FREE kfree
+    #endif
+
 #else
     #include <stddef.h>             /*offsetof*/
     #if (ARCH==x86)                 /*primitives of x86*/
         #include "x86/barrier.h"
         #include "x86/atomic.h" 
+    #endif
+
+    /* The default memory management routine for user space*/
+    #include <stdlib.h>             /*malloc*/
+    #ifndef MCT_MALLOC
+        #define MCT_MALLOC(n) malloc(n)
+    #endif
+    #ifndef MCT_FREE
+        #define MCT_FREE free
     #endif
     #define container_of(ptr, type, member) ({                      \
            const typeof( ((type *)0)->member ) *__mptr = (ptr);    \

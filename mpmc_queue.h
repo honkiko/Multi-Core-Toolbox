@@ -83,16 +83,23 @@ struct mpmc_queue {
 };
 
 
-/** @node: could be dummy node or a real first node */
 static inline int
-mpmc_queue_init(struct mpmc_queue *q, struct mpmcq_node *node) 
+mpmc_queue_init(struct mpmc_queue *q) 
 {
-    if (!node || !q){
+    struct mpmcq_node *node;
+    if (!q){
+        return -1;
+    }
+    node = (struct mpmcq_node *)MCT_MALLOC(sizeof(struct mpmcq_node));
+    if (!node){
         return -1;
     }
     node->next.ptr = NULL;
+    node->next.version = 0;
     q->head.ptr = node;
+    q->head.version = 0;
     q->tail.ptr = node;
+    q->tail.version = 0;
 #ifdef HAVE_Q_LEN
     atomic_set(&q->len, 0);
 #endif
@@ -102,18 +109,31 @@ mpmc_queue_init(struct mpmc_queue *q, struct mpmcq_node *node)
 static inline int 
 mpmc_queue_empty(struct mpmc_queue *q)
 {
+    if (!q){
+        return 1;
+    }
     smp_rmb();
     return q->head.ptr->next.ptr == NULL;
 }
 
-static inline void 
-mpmc_enqueue(struct mpmc_queue *q, struct mpmcq_node *node)
+static inline int 
+mpmc_enqueue(struct mpmc_queue *q, void *data)
 {
+    struct mpmcq_node *node;
     unsigned char swapped;
     struct versioned_pointer tail;
     struct versioned_pointer next;
     struct versioned_pointer pnode; /*pointer to node*/
+    if (!q){
+        return -1;
+    }
+    node = (struct mpmcq_node *)MCT_MALLOC(sizeof(struct mpmcq_node));
+    if (!node){
+        return -1;
+    }
+    node->user_data = data;
     node->next.ptr = NULL;
+    node->next.version = 0;
     while(1) {
         //tail = ACCESS_ONCE(q->tail);
         vp_assign(tail,q->tail);
@@ -141,12 +161,13 @@ mpmc_enqueue(struct mpmc_queue *q, struct mpmcq_node *node)
 #ifdef HAVE_Q_LEN
     atomic_inc(&q->len);
 #endif
+    return 0;
 }
 
 
 /**different than spsc_queue: user_data is returned, instead of node */
 static inline void * 
-mpmc_dequeue(struct mpmc_queue *q, struct mpmcq_node **node_to_free)
+mpmc_dequeue(struct mpmc_queue *q)
 {
     unsigned char swapped;
     void * p_user_data;
@@ -154,7 +175,10 @@ mpmc_dequeue(struct mpmc_queue *q, struct mpmcq_node **node_to_free)
     struct versioned_pointer tail;
     struct versioned_pointer next;
     struct versioned_pointer pnode;
-    *node_to_free = NULL;
+
+    if (!q){
+        return NULL;
+    }
 
     while (1) {
         //head = ACCESS_ONCE(q->head); 
@@ -188,8 +212,26 @@ mpmc_dequeue(struct mpmc_queue *q, struct mpmcq_node **node_to_free)
 #ifdef HAVE_Q_LEN
     atomic_dec(&q->len);
 #endif
-    *node_to_free = head.ptr;
+    MCT_FREE(head.ptr);
     return p_user_data;
+}
+
+/*mpmp_queue_destroy must be called exclusively*/
+static inline void
+mpmc_queue_destroy(struct mpmc_queue *q)
+{
+    void *data;
+    if (!q){
+        return;
+    }
+    while (!mpmc_queue_empty(q)) {
+        data = mpmc_dequeue(q);
+        if (data){
+            MCT_FREE(data);
+        }
+    }
+    /*free the dead node*/
+    MCT_FREE(q->head.ptr); 
 }
 
 
@@ -197,6 +239,9 @@ mpmc_dequeue(struct mpmc_queue *q, struct mpmcq_node **node_to_free)
 static inline long 
 mpmc_queue_len(struct mpmc_queue *q)
 {
+    if (!q){
+        return 0;
+    }
     return atomic_read(&q->len);
 }
 #endif

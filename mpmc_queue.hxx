@@ -6,8 +6,7 @@ template <typename T>
 class MpmcQueue {
 public:
     MpmcQueue() {
-        struct mpmcq_node *dummy_node = new mpmcq_node();    
-        mpmc_queue_init(&q, dummy_node);
+        mpmc_queue_init(&q);
     }
     ~MpmcQueue() {
         T *userData;
@@ -15,7 +14,7 @@ public:
             userData = (T *)this->dequeue();
             delete userData;
         }
-        delete q.head.ptr;
+        MCT_FREE(q.head.ptr);
     }
     bool empty() {
         return mpmc_queue_empty(&q);
@@ -24,18 +23,10 @@ public:
         return mpmc_queue_len(&q);
     }
     void enqueue (T *x) {
-        struct mpmcq_node* node = new mpmcq_node();
-        node->user_data = (void *)x;
-        mpmc_enqueue(&q, node);
+        mpmc_enqueue(&q, x);
     }
     T* dequeue() {
-        T *userData;
-        struct mpmcq_node *pfree;
-        userData = (T *)mpmc_dequeue(&q, &pfree);
-        if (pfree) {
-            delete pfree;
-        }
-        return userData;
+        return (T *)mpmc_dequeue(&q);
     }
 
 private:

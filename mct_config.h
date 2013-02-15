@@ -10,6 +10,14 @@
 #define CONFIG_64BIT
 
 /**
+ * customise the memory management routines
+ * usually you want to use your own memory management 
+ * for better performance
+ */
+//#define MCT_MALLOC malloc
+//#define MCT_FREE free
+
+/**
  * MCC_CACHELINE_BYTES - cache line size in bytes 
  */
 #define MCT_CACHELINE_BYTES 64

@@ -46,5 +46,6 @@ int main()
         free(ufree);
     }
 
+    spsc_queue_destroy(&q, free, struct user_node, node);
     return 0;
 }
