@@ -1,6 +1,5 @@
 #ifndef _SPSC_QUEUE_HXX_
 #define _SPSC_QUEUE_HXX_
-#include "generic_queue.hxx"
 #include "spsc_queue.h"
 
 // T must have copy ctor
@@ -13,7 +12,7 @@ struct _spscqUserNode: public spscq_node {
 
 // T must have copy ctor
 template <typename T>
-class SpscQueue: public Queue<T> {
+class SpscQueue {
 public:
     typedef _spscqUserNode<T> userNode;
     

@@ -1,5 +1,6 @@
 
-GTEST_DIR = ./gtest
+#GTEST_DIR = ./gtest
+GTEST_DIR = /kiko/test/gtest-1.6.0
 GTEST_MAIN_A = ./gtest/gtest_main.a
 
 # Flags passed to the preprocessor.
@@ -12,9 +13,9 @@ CXXFLAGS += -g -MMD -Wall
 # Flags passed to the linker
 LDFLAGS += -lpthread
 
-EXE = ut
+EXE = ut.x
 
-SRCS = test_spsc_queue.cxx
+SRCS = test_spsc_queue.cxx test_mpmc_queue.cxx 
 
 OBJS = $(SRCS:.cxx=.o)
 #OBJS = $(subst .cxx,.o,$(SRCS))

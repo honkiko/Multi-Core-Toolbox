@@ -1,60 +1,90 @@
-#ifndef _SPSC_QUEUE_H
-#define _SPSC_QUEUE_H
+#ifndef _MCT_SPSC_QUEUE_H
+#define _MCT_SPSC_QUEUE_H
 /*
- * SPSC_QUEUE: Single Producer, Single Consumer FIFO queue.
+ * SPSC_QUEUE: 
+ * ==========
+ * Single Producer, Single Consumer lockless queue.
  * 
  * What's special? 
- * It's a concurrent SPSC FIFO queue, means producer and 
- * consumer can simultaneously work on the queue.
+ * ---------------
+ * Producer and consumer can concurrently/parallely work 
+ * on the queue without protection by locks.
  * 
- * If you have multiple producer and consumer, simplely use
- * a producer-exclusive lock and consumer-exclusive lock to
- * serialize producers and consumers. Or turn to MPSC_QUEUE
+ * If you have multiple producers and consumers, turn to 
+ * MPSC_QUEUE in the same project.
  * 
- * It's based on the article by Maged M. Michael and 
- * Michael L. Scott: "Simple, Fast, and Practical Non-Blocking 
+ *
+ * Implementation options and concerns
+ * -----------------------------------
+ * 1) spscq_node could be embeded in user defined strutures
+ * 2) spscq_node could contain a pointer to user structures
+ * The choice have impact to performance and limitations
+ * Option 1 have better performance due to less malloc blocks
+ * (less calls to memory allocation routines which is expensive)
+ * and less pointer dereference(better cache usage).
+ * Option 1 have limitation to free the killed dead node when 
+ * you have multiple consumers protected by external locks. 
+ * Because the user structure may still be in use by other 
+ * consumer. With option 2, this is not a problem because the 
+ * node does not contain user structure directly and could be 
+ * freed without destroy user structure in use.
+ * 
+ * So it's designed to only for single-producer-single-consumer
+ * scenario. If you have single-producer-multiple-consumer or
+ * multiple-producer-multiple-consumer, you should use mpmc_queue
+ * which is also shipped in this MCT project. And of cause option
+ * 2 is taken by mpmc_queue.
+ *
+ * Another concern is dynamic memory management. All such staff 
+ * is stripped out from my implementation. So there's no dependency
+ * on specific memory management mechanism and flexable for any 
+ * customized memory management algorithm and API. That's why the 
+ * "node_to_free" pointer is exposed to user, other than freed 
+ * inside the dequeue function.
+ *
+ *
+ * Credit and Copyleft
+ * -------------------
+ *
+ * Invented and published by Maged M. Michael and Michael L. 
+ * Scott in the article "Simple, Fast, and Practical Non-Blocking 
  * and Blocking Concurrent Queue Algorithms", PODC96.
-
  *
  * Implemented and tested by:	
  *		Hong Zhiguo <honkiko@gmail.com>
  *      2012.01.18 
  *
  *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version
+ * 2 of the License, or (at your option) any later version.
  */
  
 #include "mct_adapt.h"
 
-/*
-	Producer(enqueue)		Consumer(dequeue)
+/*******************************************************
+* Producer(enqueue)         | Consumer(dequeue)
+*                           |
+* node->next = NULL;        |
+*                           | dead_head = q->head;
+*                           | new_head = dead_head->next;
+* q->tail->next = node;     |	
+* smp_wmb();                |
+*                           | if (!new_head){
+*                           |    return NULL; }
+*                           |
+*                           | q->head = new_head;
+*                           | *node_to_free = dead_head;
+*                           |
+*					        | return new_head;
+*                           |
+* q->tail = node;           |
+*                           |
+********************************************************/
 
-	node->next = NULL;		
-                            dead_head = q->head;
-                            new_head = dead_head->next;
-	q->tail->next = node;		
-	smp_wmb();
-                            if (!new_head){
-                                return NULL; }
-
-                            q->head = new_head;
-                            *node_to_free = dead_head;
-                           
-					return new_head;
-
-
-	q->tail = node;
-
-*/
-
-/** each node has 2 state: active or zombie
- * */
 struct spscq_node {
     struct spscq_node *next;
-    //spsc_node_state_t state;
 };
 
 struct spsc_queue {
@@ -87,7 +117,11 @@ spsc_queue_init(struct spsc_queue *q, struct spscq_node *node)
     return 0;
 }
 
+#ifdef __cplusplus
 static inline bool 
+#else
+static inline int 
+#endif 
 spsc_queue_empty(struct spsc_queue *q)
 {
     smp_rmb();
