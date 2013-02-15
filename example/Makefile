@@ -3,20 +3,24 @@ MCT_DIR = ..
 
 PPFLAGS = -I$(MCT_DIR) 
 
-CCFLAGS = -g -MMD 
+CCFLAGS = -g 
 
-LDFLAGS += -lpthread
+LDFLAGS = -lpthread
 
-EXE = example_spsc_queue.x example_mpmc_queue.x 
+EXE = example_spsc_queue.x \
+	  example_mpmc_queue.x \
+	  example_stl_queue.x
 
-SRCS = example_spsc_queue.c example_mpmc_queue.c
+SRCS = example_spsc_queue.c \
+	   example_mpmc_queue.c \
+	   example_stl_queue.cxx
 
 OBJS = $(SRCS:.c=.o)
-#OBJS = $(subst .c,.o,$(SRCS))
-
-DEPS = $(SRCS:.c=.d)
 
 all: $(EXE) 
+
+example_stl_queue.x: example_stl_queue.cc
+	g++ -g -lpthread $< -o $@
 
 %.o: %.c $(MCT_DIR)/spsc_queue.h $(MCT_DIR)/mpmc_queue.h 
 	gcc $(PPFLAGS) $(CCFLAGS) -c $<
@@ -25,5 +29,5 @@ all: $(EXE)
 	gcc $(CCFLAGS) $(LDFLAGS) $^ -o $@
 
 clean:
-	rm -f $(EXE) $(OBJS) $(DEPS)
+	rm -f $(EXE) $(OBJS) 
 

@@ -1,13 +1,13 @@
 Backlogs:
-<<< 	2 threads example for spsc_queue
 <<< 	multiple threads example for mpmc_queue
-<< 		mpmc_queue C++ interface
-<< 		mpmc_queue unit test
 < 		MCS-lock
-<       Valgrind check
 
 Done:
 << 		DCAS for x86
 << 		mpmc_queue C implementation
 << 		mpmc_queue example
+<       Valgrind check
+<<< 	2 threads example for spsc_queue
+<< 		mpmc_queue C++ interface
+<< 		mpmc_queue unit test
 
