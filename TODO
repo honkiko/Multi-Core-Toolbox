@@ -10,4 +10,5 @@ Done:
 <<< 	2 threads example for spsc_queue
 << 		mpmc_queue C++ interface
 << 		mpmc_queue unit test
+<<		support IA32
 

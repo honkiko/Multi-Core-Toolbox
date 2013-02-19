@@ -51,7 +51,7 @@
  * and Blocking Concurrent Queue Algorithms", PODC96.
  *
  * Implemented and tested by:	
- *		Hong Zhiguo <honkiko@gmail.com>
+ *		Hong Zhiguo <honkiko@gmail.com/honkiko@163.com>
  *      2012.01.18 
  *
  *

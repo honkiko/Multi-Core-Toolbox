@@ -1,9 +1,9 @@
 #ifndef _MCT_ATOMIC64_H_
 #define _MCT_ATOMIC64_H_
 
+
 #define LOCK_PREFIX "\n\tlock; "
 
-#ifdef CONFIG_64BIT
 typedef struct {
     long counter;
 } atomic64_t;
@@ -163,7 +163,6 @@ static inline int atomic64_add_negative(long i, atomic64_t *v)
              : "er" (i), "m" (v->counter) : "memory");
     return c;
 }
-#endif
 
 
 #endif

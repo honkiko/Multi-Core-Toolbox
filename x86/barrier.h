@@ -11,7 +11,7 @@
 #define smp_mb()        barrier()
 #define smp_rmb()       barrier()
 #define smp_wmb()       barrier()
-#else
+#else /*ifdef CONFIG_SAME_CPU*/
 #define mb()            asm volatile("mfence":::"memory")
 #define rmb()           asm volatile("lfence":::"memory")
 #define wmb()           asm volatile("sfence" ::: "memory")

@@ -1,16 +1,22 @@
 #ifndef _MCT_CONFIG_H_
 #define _MCT_CONFIG_H_
 
+/**
+ * ARCH - Architect selection
+ */
 #define ARCH x86
 //#define ARCH ppc
 
 /**
- * CONFIG_64BIT - on 64bit system 
+ * MCT_WORDSIZE - 64BIT or 32BIT
+ * If not defined, it'll be derived from CONFIG_64BIT(Linux kernel) 
+ * or __SIZEOF_POINTER__(gcc buildin)
  */
-#define CONFIG_64BIT
+//#define MCT_WORDSIZE 64BIT 
+//#define MCT_WORDSIZE 32BIT 
 
 /**
- * customise the memory management routines
+ * MCT_MALLOC, MCT_FREE - customise the memory management routines
  * usually you want to use your own memory management 
  * for better performance
  */
@@ -20,7 +26,7 @@
 /**
  * MCC_CACHELINE_BYTES - cache line size in bytes 
  */
-#define MCT_CACHELINE_BYTES 64
+//#define MCT_CACHELINE_BYTES 64
 
 /** 
  * HAVE_Q_LEN - to decide whether having xxxx_queue_len() primitive

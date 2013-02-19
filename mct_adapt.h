@@ -3,7 +3,6 @@
 #include "mct_config.h"
 #ifdef __KERNEL__
     #include <asm/barrier.h>        /*smp_mb*/
-    #include <linux/cache.h>        /*SMP_CACHE_BYTES*/
     #include <linux/kernel.h>       /*container_of*/
 
     /* The default memory management routine for kernel*/
@@ -14,9 +13,32 @@
         #define MCT_FREE kfree
     #endif
 
-#else
+    /*derive MCT_WORDSIZE from CONFIG_XXBIT*/
+    #ifndef MCT_WORDSIZE
+        #ifdef CONFIG_64BIT
+            #define MCT_WORDSIZE 8
+        #endif /*CONFIG_64BIT*/
+        #ifdef CONFIG_32BIT
+            #define MCT_WORDSIZE 4
+        #endif /*CONFIG_32BIT*/
+    #endif /*MCT_WORDSIZE*/
+    #ifndef MCT_WORDSIZE
+        #error "neither CONFIG_64BIT nor CONFIG_32BIT defined"
+    #endif /*CONFIG_32BIT*/
+
+    /*derive MCT_CACHELINE_BYTES from SMP_CACHE_BYTES*/
+    #ifndef MCT_CACHELINE_BYTES
+        #include <linux/cache.h>        /*SMP_CACHE_BYTES*/
+        #ifdef SMP_CACHE_BYTES
+            #define MCT_CACHELINE_BYTES SMP_CACHE_BYTES
+        #endif 
+    #endif /*MCT_CACHELINE_BYTES*/
+
+#else /*ifdef __KERNEL__*/
     #include <stddef.h>             /*offsetof*/
-    #if (ARCH==x86)                 /*primitives of x86*/
+
+    /*atomic_t and barriers */
+    #if (ARCH==x86)
         #include "x86/barrier.h"
         #include "x86/atomic.h" 
     #endif
@@ -29,6 +51,17 @@
     #ifndef MCT_FREE
         #define MCT_FREE free
     #endif
+
+    /*derive MCT_WORDSIZE from __SIZEOF_POINTER__*/
+    #ifndef MCT_WORDSIZE
+        #define MCT_WORDSIZE (__SIZEOF_POINTER__)
+    #endif /*MCT_WORDSIZE*/
+
+    /*default MCT_CACHELINE_BYTES*/
+    #ifndef MCT_CACHELINE_BYTES
+        #define MCT_CACHELINE_BYTES 64
+    #endif
+
     #define container_of(ptr, type, member) ({                      \
            const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
            (type *)( (char *)__mptr - offsetof(type,member) );})
@@ -48,16 +81,14 @@
    
 #endif /*__KERNEL__*/
 
-#ifndef MCT_CACHELINE_BYTES
-    #ifdef SMP_CACHE_BYTES
-        #define MCT_CACHELINE_BYTES SMP_CACHE_BYTES
-    #else
-        #define MCT_CACHELINE_BYTES 64
-    #endif
-#endif
 
 #if (ARCH==x86)                 /*primitives of x86*/
-#include "x86/dcas.h"
+    #if (MCT_WORDSIZE==4)
+    #include "x86/dcas_on_32.h"
+    #endif
+    #if (MCT_WORDSIZE==8)
+    #include "x86/dcas_on_64.h"
+    #endif
 #endif
 
 
