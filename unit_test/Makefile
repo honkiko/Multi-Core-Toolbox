@@ -15,7 +15,7 @@ LDFLAGS += -lpthread
 
 EXE = ut.x
 
-SRCS = test_spsc_queue.cxx test_mpmc_queue.cxx 
+SRCS = $(wildcard *.cxx)
 
 OBJS = $(SRCS:.cxx=.o)
 #OBJS = $(subst .cxx,.o,$(SRCS))

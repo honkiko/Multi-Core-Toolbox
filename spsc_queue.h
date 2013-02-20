@@ -99,7 +99,7 @@ struct spsc_queue {
     #endif
     atomic_t len;
 #endif
-};
+} __attribute__((__aligned__(MCT_CACHELINE_BYTES)));
 
 /** @node: could be dummy node or a real first node */
 static inline int  

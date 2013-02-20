@@ -3,6 +3,52 @@
 
 #define LOCK_PREFIX "\n\tlock; "
 
+
+
+
+typedef (void *) ptr_t;
+
+/**
+ * fetch_and_store - get old value pointed by p, and write v to *p
+ */
+static inline ptr_t fetch_and_store(ptr_t *p, ptr_t v)
+{
+    ptr_t old = v;
+    __asm__ __volatile__( 
+        "xchgl %0, %1\n\t"     
+        : "+r" (old), 
+          "+m" (*(ptr))
+        : 
+        : "memory", "cc");
+    return old;    
+} 
+
+
+/**
+ * compare_and_store - simpler symatic than compare_and_swap
+ * only *p may be changed. other parameters (cmp, swap) will
+ * not be changed. 
+ * Compare EAX with r/m32. If equal, ZF is set 
+ * and r32is loaded into r/m32. Else, clear ZF 
+ * and load r/m32into EAX. 
+ * @return: 1 if exchanged/swapped, 0 if not exchanged/swapped
+ */
+static inline char compare_and_store(ptr_t *p, ptr_t cmp, ptr_t swap)
+{
+    unsigned char result;;
+    ptr_t _cmp = cmp;
+    ptr_t _swap = swap;
+    volatile ptr_t *_p = (volatile ptr_t *)(ptr);
+    __asm__ __volatile__ (
+        "lock ; cmpxchgl %3,%1 \n\t"
+        "setz %2;\n\t"
+        : "+a" (_cmp), 
+          "+m" (*_p),
+          "=r" (result)
+        : "r" (_swap) 
+        : "cc", "memory");    
+}
+
 typedef struct {
     int counter;
 } atomic32_t;
