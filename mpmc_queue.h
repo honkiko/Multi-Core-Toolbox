@@ -144,20 +144,20 @@ mpmc_enqueue(struct mpmc_queue *q, void *data)
             if (next.ptr == NULL){
                 pnode.ptr = node; 
                 pnode.version = next.version + 1; 
-                swapped = dcas(&tail.ptr->next, &next, &pnode);
+                swapped = double_cmp_and_swap(&tail.ptr->next, &next, &pnode);
                 if (swapped) {
                     break;
                 }
             } else {
                 pnode.ptr = next.ptr;
                 pnode.version = tail.version + 1;
-                dcas(&q->tail, &tail, &pnode);
+                double_cmp_and_swap(&q->tail, &tail, &pnode);
             }
         }
     } /*while*/
     pnode.ptr = node;
     pnode.version = tail.version + 1;
-    dcas(&q->tail, &tail, &pnode); 
+    double_cmp_and_swap(&q->tail, &tail, &pnode); 
 #ifdef HAVE_Q_LEN
     atomic_inc(&q->len);
 #endif
@@ -197,12 +197,12 @@ mpmc_dequeue(struct mpmc_queue *q)
             }
             pnode.ptr = next.ptr;
             pnode.version = tail.version + 1;
-            dcas(&q->tail, &tail, &pnode);
+            double_cmp_and_swap(&q->tail, &tail, &pnode);
         } else {
             p_user_data = next.ptr->user_data;
             pnode.ptr = next.ptr;
             pnode.version = head.version + 1;
-            swapped = dcas(&q->head, &head, &pnode); 
+            swapped = double_cmp_and_swap(&q->head, &head, &pnode); 
             if (swapped) {
                 break;
             }

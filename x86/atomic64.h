@@ -1,60 +1,13 @@
 #ifndef _MCT_ATOMIC64_H_
 #define _MCT_ATOMIC64_H_
+#ifndef __KERNEL__
 
-
-#define LOCK_PREFIX "\n\tlock; "
-
-typedef void* ptr_t;
-
-/**
- * fetch_and_store - get old value pointed by p, and write v to *p
- */
-static inline ptr_t fetch_and_store(ptr_t *p, ptr_t v)
-{
-    ptr_t _v = (v);
-    typeof(p) _p = (p);
-    __asm__ __volatile__( 
-        "xchgq %0, %1\n\t"     
-        : "+r" (_v), 
-          "+m" (*_p)
-        : 
-        : "memory", "cc");
-    return _v;    
-} 
-
-
-/**
- * compare_and_store - simpler symatic than compare_and_swap
- * only *p may be changed. other parameters (cmp, swap) will
- * not be changed. 
- *
- * cmpxchgq: Compare RAX with r/m64. If equal, ZF is set 
- * and r64 is loaded into r/m64. Else, clear ZF 
- * and load r/m64 into RAX. 
- * @return: 1 if exchanged/swapped, 0 if not exchanged/swapped
- */
-static inline char compare_and_store(ptr_t *p, ptr_t cmp, ptr_t swap)
-{
-    unsigned char result;;
-    ptr_t _cmp = cmp;
-    ptr_t _swap = swap;
-    volatile ptr_t *_p = (volatile ptr_t *)(p);
-    __asm__ __volatile__ (
-        "lock ; cmpxchgq %3,%1 \n\t"
-        "setz %2;\n\t"
-        : "+a" (_cmp), 
-          "+m" (*_p),
-          "=r" (result)
-        : "r" (_swap) 
-        : "cc", "memory");    
-    return result;
-}
-
+/* The 64-bit atomic type */
 typedef struct {
     long counter;
 } atomic64_t;
 
-/* The 64-bit atomic type */
+#define LOCK_PREFIX "\n\tlock; "
 
 #define ATOMIC64_INIT(i)    { (i) }
 

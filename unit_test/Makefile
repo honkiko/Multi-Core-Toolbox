@@ -1,7 +1,6 @@
 
-#GTEST_DIR = ./gtest
-GTEST_DIR = /kiko/test/gtest-1.6.0
-GTEST_MAIN_A = ./gtest/gtest_main.a
+GTEST_DIR = ./gtest
+GTEST_MAIN_A = $(GTEST_DIR)/gtest_main.a
 
 # Flags passed to the preprocessor.
 CPPFLAGS += -I.. -I$(GTEST_DIR)
@@ -28,7 +27,7 @@ DEPS = $(SRCS:.cxx=.d)
 all: $(EXE) 
 
 $(GTEST_MAIN_A):
-	make all -C ./gtest
+	make all -C $(GTEST_DIR)
 
 %.o: %.cxx $(DEPSRCS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $<

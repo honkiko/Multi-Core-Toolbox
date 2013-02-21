@@ -37,11 +37,6 @@
 #else /*ifdef __KERNEL__*/
     #include <stddef.h>             /*offsetof*/
 
-    /*atomic_t and barriers */
-    #if (ARCH==x86)
-        #include "x86/barrier.h"
-        #include "x86/atomic.h" 
-    #endif
 
     /* The default memory management routine for user space*/
     #include <stdlib.h>             /*malloc*/
@@ -56,6 +51,12 @@
     #ifndef MCT_WORDSIZE
         #define MCT_WORDSIZE (__SIZEOF_POINTER__)
     #endif /*MCT_WORDSIZE*/
+
+    /*atomic_t and barriers */
+    #if (ARCH==x86)
+        #include "x86/barrier.h"
+        #include "x86/atomic.h" 
+    #endif
 
     /*default MCT_CACHELINE_BYTES*/
     #ifndef MCT_CACHELINE_BYTES
@@ -84,10 +85,10 @@
 
 #if (ARCH==x86)                 /*primitives of x86*/
     #if (MCT_WORDSIZE==4)
-    #include "x86/dcas_on_32.h"
+    #include "x86/sync_prim_32.h"
     #endif
     #if (MCT_WORDSIZE==8)
-    #include "x86/dcas_on_64.h"
+    #include "x86/sync_prim_64.h"
     #endif
 #endif
 

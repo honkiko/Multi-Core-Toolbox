@@ -12,8 +12,7 @@
  * If not defined, it'll be derived from CONFIG_64BIT(Linux kernel) 
  * or __SIZEOF_POINTER__(gcc buildin)
  */
-//#define MCT_WORDSIZE 64BIT 
-//#define MCT_WORDSIZE 32BIT 
+//#define MCT_WORDSIZE 8 
 
 /**
  * MCT_MALLOC, MCT_FREE - customise the memory management routines

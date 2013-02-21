@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 #include "mct_adapt.h"
+#define __STDC_LIMIT_MACROS
+#include "stdint.h"
 
 #define MCT_NULL ((void *)0)
 
@@ -33,9 +35,9 @@ const FetchAndStorePara_t fetchAndStoreParas[] = {
     {1234, 5678},
     {1234, 1234},
     {0, 0},
-    {0xffffffffffffffff, 0},
-    {0xffffffffffffffff, 0xffffffffffffffff},
-    {3412412, 0xffffffffffffffff},
+    {0xffffffff, 0},
+    {0xffffffff, 0xffffffff},
+    {3412412, 0xffffffff},
 };
 INSTANTIATE_TEST_CASE_P(Atomic, FetchAndStoreTest,
                         ::testing::ValuesIn(fetchAndStoreParas));
@@ -80,10 +82,10 @@ const CompAndSwapPara_t compAndSwapParas[] = {
     {1234, 1234, 555},
     {0, 0, 555},
     {0, 0, 0},
-    {0xffffffffffffffff, 0, 555},
-    {0xffffffffffffffff, 0xffffffffffffffff, 555},
-    {0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff},
-    {3412412, 0xffffffffffffffff, 555},
+    {UINTPTR_MAX, 0, 555},
+    {UINTPTR_MAX, UINTPTR_MAX, 555},
+    {UINTPTR_MAX, UINTPTR_MAX, UINTPTR_MAX},
+    {3412412, UINTPTR_MAX, 555},
 };
 INSTANTIATE_TEST_CASE_P(Atomic, CompAndSwapTest,
                         ::testing::ValuesIn(compAndSwapParas));
