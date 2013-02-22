@@ -164,4 +164,6 @@ static inline int atomic64_add_negative(long i, atomic64_t *v)
 }
 
 
-#endif
+#endif /*__KERNEL__*/
+#endif /*_MCT_ATOMIC64_H_*/
+

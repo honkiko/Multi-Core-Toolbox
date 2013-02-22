@@ -88,11 +88,11 @@ struct spscq_node {
 };
 
 struct spsc_queue {
-    struct spscq_node *head;
+    struct spscq_node * volatile head;
 #ifndef CONFIG_SAME_CPU
     char pading[MCT_CACHELINE_BYTES - sizeof(void *)];
 #endif
-    struct spscq_node *tail;
+    struct spscq_node * volatile tail;
 #ifdef HAVE_Q_LEN
     #ifndef CONFIG_SAME_CPU
     char pading2[MCT_CACHELINE_BYTES - sizeof(void *)];

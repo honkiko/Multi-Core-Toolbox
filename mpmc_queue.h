@@ -69,11 +69,11 @@ struct mpmcq_node {
 };
 
 struct mpmc_queue {
-    struct versioned_pointer head;
+    volatile struct versioned_pointer head;
 #ifndef CONFIG_SAME_CPU
     char pading[MCT_CACHELINE_BYTES - sizeof(struct versioned_pointer)];
 #endif
-    struct versioned_pointer tail;
+    volatile struct versioned_pointer tail;
 #ifdef HAVE_Q_LEN
 #ifndef CONFIG_SAME_CPU
     char pading2[MCT_CACHELINE_BYTES - sizeof(struct versioned_pointer)];

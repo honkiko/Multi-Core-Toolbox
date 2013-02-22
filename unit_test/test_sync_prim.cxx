@@ -10,6 +10,8 @@ struct FetchAndStorePara_t {
     unsigned long y;
 };
 
+typedef unsigned long ptr_t;
+
 class FetchAndStoreTest : public ::testing::TestWithParam<FetchAndStorePara_t> {
   // You can implement all the usual fixture class members here.
   // To access the test parameter, call GetParam() from class
@@ -31,6 +33,9 @@ TEST_P(FetchAndStoreTest, basic) {
     EXPECT_EQ(_NEW_VALUE, x);
 }
 
+#ifndef UINTPTR_MAX
+#define UINTPTR_MAX ((unsigned long)-1)
+#endif
 const FetchAndStorePara_t fetchAndStoreParas[] = {
     {1234, 5678},
     {1234, 1234},

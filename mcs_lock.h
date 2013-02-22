@@ -30,7 +30,7 @@ static inline void mcs_lock_init(mcslock_t *lock)
 static inline void mcs_lock(mcslock_t *lock, struct _mcslock_node *mynode)
 {
     struct _mcslock_node *pre;
-    node->next = NULL;
+    mynode->next = NULL;
     mynode->wait = 1;
    
     /*atomic: {pre=lock->tail; tail=node;} */ 
@@ -57,7 +57,7 @@ static inline void mcs_unlock(mcslock_t *lock, struct _mcslock_node *mynode)
          * They may try to fetch_and_store(&lock->tail, their_node),
          * while I'll try to "set lock->tail=me, if I'm still the last one"
          */ 
-        if (compare_and_store(lock->tail, mynode, NULL)) {
+        if (compare_and_store(&lock->tail, mynode, NULL)) {
             return;
         }
         /* we failed the race, someone else will wait afer me soon
@@ -81,7 +81,7 @@ static inline void mcs_unlock(mcslock_t *lock, struct _mcslock_node *mynode)
 
 static inline int mcs_trylock(mcslock_t *lock, struct _mcslock_node *mynode)
 {
-    if (compare_and_store(lock->tail, NULL, mynode)) 
+    if (compare_and_store(&lock->tail, NULL, mynode)) 
         return 1;
     else
         return 0; 

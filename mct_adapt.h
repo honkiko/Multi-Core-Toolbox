@@ -84,12 +84,7 @@
 
 
 #if (ARCH==x86)                 /*primitives of x86*/
-    #if (MCT_WORDSIZE==4)
-    #include "x86/sync_prim_32.h"
-    #endif
-    #if (MCT_WORDSIZE==8)
-    #include "x86/sync_prim_64.h"
-    #endif
+    #include "x86/sync_prim.h"
 #endif
 
 
